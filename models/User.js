@@ -23,7 +23,7 @@ UserSchema.methods.setPassword = function(password) {
 UserSchema.methods.validPassword = function(password) {
     var hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
     return this.hash === hash;
-}
+};
 
 UserSchema.methods.generateJWT = function() {
     var today = new Date();
@@ -35,7 +35,7 @@ UserSchema.methods.generateJWT = function() {
         username: this.username,
         exp: parseInt(exp.getTime() / 1000)
     }, secret);
-}
+};
 
 UserSchema.methods.toAuthJSON = function() {
     return {
@@ -44,7 +44,16 @@ UserSchema.methods.toAuthJSON = function() {
         token: this.generateJWT(),
         bio: this.bio,
         image: this.image
-    }
-}
+    };
+};
+
+UserSchema.methods.toProfileJSON= function(user) {
+    return {
+        username: this.username,
+        bio: this.bio,
+        image: this.image || 'https://static.productionready.io/images/smiley-cyrus.jpg',
+        following: false // TODO: implement functionality for following user profiles :)
+    };
+};
 
 mongoose.model('User', UserSchema);
