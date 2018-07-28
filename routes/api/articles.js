@@ -64,6 +64,42 @@ router.get('/', auth.optional, function(req, res, next) {
     }).catch(next);
 });
 
+router.get('/feed', auth.required, function(req, res, next) {
+    var limit = 20;
+    var offset = 0;
+
+    if (typeof req.query.limit !== 'undefined') {
+        limit = req.query.limit;
+    }
+
+    if (typeof req.query.offset !== 'undefined') {
+        offset = req.query.offset;
+    }
+
+    User.findById(req.payload.id).then(function(user){
+        if (!user) { return res.sendStatus(401) };
+
+        Promise.all([
+            Article.find({author: {$in: user.following}})
+                .limit(Number(limit))
+                .skip(Number(offset))
+                .populate('author')
+                .exec(),
+            Article.count({author: {$in: user.following}})
+        ]).then(function(results){
+            var articles = results[0];
+            var articlesCount = results[1];
+
+            return res.json({
+                articles: articles.map(function(article){
+                    return article.toArticleJSON(user);
+                }),
+                articlesCount: articlesCount
+            })
+        }).catch(next);
+    })
+})
+
 router.post('/', auth.required, function(req, res, next) {
     User.findById(req.payload.id).then(function(user) {
         if (!user) { return res.sendStatus(401); }
