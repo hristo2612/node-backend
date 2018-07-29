@@ -8,7 +8,8 @@ var fs = require('fs'),
     cors = require('cors'),
     passport = require('passport'),
     errorhandler = require('errorhandler'),
-    mongoose = require('mongoose');
+    mongoose = require('mongoose'),
+    MongoStore = require('connect-mongo')(session);
 
 var isProduction = process.env.NODE_ENV === 'production';
 
@@ -24,14 +25,14 @@ app.use(bodyParser.json());
 app.use(require('method-override')());
 app.use(express.static(__dirname + '/public'));
 
-app.use(session({ secret: 'backend', cookie: { maxAge: 69000 }, resave: false, saveUninitialized: false }));
-
 if (process.env.NODE_ENV === 'production') {
-    mongoose.connect(process.env.MONGODB_URI);
+    mongoose.connect(process.env.MONGODB_URI + '/node-backend');
 } else {
     mongoose.connect('mongodb://localhost/nodebackend');
     mongoose.set('debug', true);
 }
+
+app.use(session({ store: new MongoStore({ mongooseConnection: mongoose.connection }), secret: 'backend', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
 
 require('./models/User');
 require('./models/Article');
