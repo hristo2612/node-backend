@@ -26,15 +26,11 @@ app.use(express.static(__dirname + '/public'));
 
 app.use(session({ secret: 'backend', cookie: { maxAge: 69000 }, resave: false, saveUninitialized: false }));
 
-if (isProduction) {
+if (process.env.NODE_ENV === 'production') {
     mongoose.connect(process.env.MONGODB_URI);
 } else {
-    if(process.env.NODE_ENV === 'production'){
-        mongoose.connect(process.env.MONGODB_URI);
-    } else {
-        mongoose.connect('mongodb://localhost/nodebackend');
-        mongoose.set('debug', true);
-    }
+    mongoose.connect('mongodb://localhost/nodebackend');
+    mongoose.set('debug', true);
 }
 
 require('./models/User');
