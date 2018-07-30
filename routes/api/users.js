@@ -39,6 +39,23 @@ router.post('/users/login', function(req, res, next) {
     })(req, res, next);
 });
 
+router.get('/users/login/facebook', passport.authenticate('facebook'));
+
+router.get('/users/login/facebook/return', 
+  function(req, res, next) {
+    passport.authenticate('facebook', function(err, user, info) {
+        if (err) { return next(err); }
+
+        if (user) {
+            user.token = user.generateJWT();
+            return res.json({ user: user.toAuthJSON() });
+        } else {
+            return res.status(422).json(info);
+        }
+    })(req, res, next);
+});
+
+
 router.get('/user', auth.required, function(req, res, next){
     User.findById(req.payload.id).then(function(user){
         if (!user) {
